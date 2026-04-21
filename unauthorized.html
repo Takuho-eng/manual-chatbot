@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>アクセス権限なし</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      min-height: 100dvh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card {
+      background: #fff; border-radius: 20px; padding: 48px 40px;
+      max-width: 400px; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .icon { font-size: 48px; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #1e293b; margin-bottom: 10px; }
+    p  { font-size: 14px; color: #64748b; line-height: 1.7; margin-bottom: 28px; }
+    a  {
+      display: inline-block; padding: 11px 24px;
+      background: linear-gradient(135deg,#4f46e5,#7c3aed);
+      color: #fff; border-radius: 10px; text-decoration: none; font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🔒</div>
+    <h1>アクセス権限がありません</h1>
+    <p>このサービスを利用するには<br>管理者による登録が必要です。<br>担当者にお問い合わせください。</p>
+    <a href="/">ログイン画面に戻る</a>
+  </div>
+</body>
+</html>

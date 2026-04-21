@@ -57,7 +57,16 @@
     .header-text h1 { font-size: 17px; font-weight: 700; line-height: 1.3; }
     .header-text p  { font-size: 12px; opacity: 0.8; margin-top: 2px; }
 
-    .header-actions { margin-left: auto; display: flex; gap: 8px; }
+    .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+    .user-info {
+      font-size: 12px;
+      color: rgba(255,255,255,0.85);
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     .btn-icon {
       background: rgba(255,255,255,0.15);
@@ -301,8 +310,10 @@
       <p>マニュアルに基づいてご質問にお答えします</p>
     </div>
     <div class="header-actions">
+      <span class="user-info" id="userInfo"></span>
       <button class="btn-icon" onclick="refreshManual()" title="マニュアルを更新">🔄 更新</button>
       <button class="btn-icon" onclick="clearChat()"    title="会話をリセット">🗑 リセット</button>
+      <button class="btn-icon" onclick="location.href='/logout'" title="ログアウト">🚪 ログアウト</button>
     </div>
   </div>
 
@@ -346,10 +357,8 @@
 </div>
 
 <script>
-  // ── 設定 ───────────────────────────────────────
-  // ★ Cloud Run の URL に書き換えてください（末尾スラッシュなし）
-  // 例: const API_BASE = "https://manual-chatbot-xxxxxxxx-an.a.run.app";
-  const API_BASE = "YOUR_CLOUD_RUN_URL";
+  // ── 設定（Cloud Run から配信されるため API_BASE は同一オリジン）───
+  const API_BASE = "";
 
   // ── 状態 ───────────────────────────────────────
   let conversationHistory = [];
@@ -364,16 +373,25 @@
   const errorBanner  = document.getElementById("errorBanner");
   const welcomeMsg   = document.getElementById("welcomeMsg");
 
-  // ── 起動時にサーバー状態確認 ──────────────────
-  window.addEventListener("load", checkServerStatus);
+  // ── 起動時：ユーザー情報取得 + サーバー状態確認 ──
+  window.addEventListener("load", initialize);
 
-  async function checkServerStatus() {
+  async function initialize() {
+    // ログイン確認
     try {
-      const res = await fetch(`${API_BASE}/status`);
+      const res  = await fetch("/me");
+      const data = await res.json();
+      if (!data.logged_in) { location.href = "/"; return; }
+      document.getElementById("userInfo").textContent = "👤 " + (data.name || data.email);
+    } catch { /* ignore */ }
+
+    // サーバー状態確認
+    try {
+      const res  = await fetch("/status");
       const data = await res.json();
       setStatus("ready", `モデル: ${data.model}　マニュアル: ${data.manual_chars.toLocaleString()} 文字`);
     } catch {
-      setStatus("error", "サーバーに接続できません。app.py が起動しているか確認してください。");
+      setStatus("error", "サーバーに接続できません。");
     }
   }
 
