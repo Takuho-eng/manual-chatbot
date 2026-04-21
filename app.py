@@ -92,6 +92,40 @@ def is_authorized_user(email: str) -> bool:
         print(f"[ERROR] ユーザー認証チェック失敗: {e}", flush=True)
         return False
 
+def get_user_name(email: str) -> str:
+    """Sheet1「users」のA列でメールを検索し、B列の氏名を返す"""
+    try:
+        creds = _build_service_credentials()
+        service = build("sheets", "v4", credentials=creds)
+        result = service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range="users!A:B",
+        ).execute()
+        rows = result.get("values", [])
+        for row in rows:
+            if len(row) >= 1 and row[0].strip().lower() == email.strip().lower():
+                return row[1] if len(row) >= 2 else ""
+        return ""
+    except Exception as e:
+        print(f"[ERROR] 氏名取得失敗: {e}", flush=True)
+        return ""
+        
+        
+def log_chat(email: str, question: str, answer: str):
+    """全ての質問と回答をlogシートに記録"""
+    try:
+        creds = _build_service_credentials()
+        service = build("sheets", "v4", credentials=creds)
+        now = datetime.now().strftime("%Y/%m/%d %H:%M")
+        name = get_user_name(email)
+        service.spreadsheets().values().append(
+            spreadsheetId=SPREADSHEET_ID,
+            range="log!A:E",
+            valueInputOption="USER_ENTERED",
+            body={"values": [[now, email, name, question, answer]]},
+        ).execute()
+    except Exception as e:
+        print(f"[ERROR] チャットログ記録失敗: {e}", flush=True)
 
 # ── Spreadsheet：質問ログ記録 ──────────────────────
 def log_question(email: str, question: str):
@@ -261,7 +295,8 @@ def chat():
         if "マニュアルには記載がありません" in reply:
             log_question(user_email, user_message)
             notify_discord(user_email, user_message)
-
+            
+        log_chat(user_email, user_message, reply)
         return jsonify({
             "response": reply,
             "history": messages + [{"role": "assistant", "content": reply}],
