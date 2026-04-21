@@ -14,6 +14,7 @@ from datetime import datetime
 from functools import wraps
 from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 from authlib.integrations.flask_client import OAuth
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -21,6 +22,7 @@ import google.auth
 import anthropic
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 CORS(app, supports_credentials=True)
 
 # ── 設定 ──────────────────────────────────────────
