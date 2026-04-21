@@ -121,7 +121,9 @@ def notify_discord(email: str, question: str):
             f"📋 **マニュアル未掲載の質問**\n"
             f"👤 **質問者:** {email}\n"
             f"❓ **質問内容:** {question}\n"
-            f"🕐 **日時:** {now}"
+            f"🕐 **日時:** {now}\n"
+            f"📝 **回答フォーム:** https://manual-chatbot-78591991412.asia-northeast1.run.app/admin/answer"
+            f"?email={requests.utils.quote(email)}&question={requests.utils.quote(question)}"
         )
     }
     try:
@@ -291,7 +293,37 @@ def status():
         "manual_chars": len(_manual_cache["content"]) if _manual_cache["content"] else 0,
     })
 
-
+@app.route("/admin/answer", methods=["GET", "POST"])
+@login_required
+def admin_answer():
+    if request.method == "POST":
+        email = request.form.get("email", "")
+        question = request.form.get("question", "")
+        answer = request.form.get("answer", "")
+        n8n_url = os.environ.get("N8N_WEBHOOK_URL", "")
+        if n8n_url:
+            requests.post(n8n_url, json={
+                "email": email,
+                "question": question,
+                "answer": answer
+            })
+        return """<html><body style='font-family:sans-serif;text-align:center;padding:50px'>
+        <h2>✅ 送信完了</h2><p>Google Docsへの追記とメール送信が完了しました。</p>
+        <a href='/'>チャット画面に戻る</a></body></html>"""
+    
+    email = request.args.get("email", "")
+    question = request.args.get("question", "")
+    return f"""<html><body style='font-family:sans-serif;max-width:600px;margin:50px auto;padding:20px'>
+    <h2>📝 未回答質問への回答</h2>
+    <form method='POST'>
+        <label>質問者メールアドレス</label><br>
+        <input type='text' name='email' value='{email}' style='width:100%;padding:8px;margin:8px 0 16px'><br>
+        <label>質問内容</label><br>
+        <textarea name='question' rows='3' style='width:100%;padding:8px;margin:8px 0 16px'>{question}</textarea><br>
+        <label>回答</label><br>
+        <textarea name='answer' rows='5' style='width:100%;padding:8px;margin:8px 0 16px'></textarea><br>
+        <button type='submit' style='background:#4CAF50;color:white;padding:12px 24px;border:none;cursor:pointer;font-size:16px'>送信</button>
+    </form></body></html>"""
 if __name__ == "__main__":
     print(f"[INFO] Starting on port {PORT}", flush=True)
     app.run(host="0.0.0.0", port=PORT, debug=False)
